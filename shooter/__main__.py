@@ -8,9 +8,9 @@ from shooter.scene import Splash
 from shooter.values import resolution
 
 inputs = [
-    systems.Axis("vertical", keycodes.S, keycodes.W),
-    systems.Axis("horizontal", keycodes.A, keycodes.D),
-    systems.Impulse("fire", buttons.Primary, Shoot)
+    systems.Axis("vertical", keycodes.Down, keycodes.Up),
+    systems.Axis("horizontal", keycodes.Left, keycodes.Right),
+    systems.Impulse("fire", keycodes.Space, Shoot)
 ]
 
 with ppb.GameEngine(Splash, systems=[systems.ControllerSystem],

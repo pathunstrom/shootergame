@@ -4,6 +4,7 @@ from random import choice
 from ppb import Vector
 from ppb import events as event
 from ppb import flags as flag
+from ppb.features.animation import Animation
 
 from shooter.sprites import SpriteRoot
 from shooter.events import Shoot
@@ -13,24 +14,28 @@ __all__ = [
     "Bullet",
     "Player",
     "EnemyShip",
-    "Level"
+    "Level",
+    "PowerUp"
 ]
 
 
-class Ship(SpriteRoot):
-    health = 100
+class MoveMixin(SpriteRoot):
     speed = 3
     heading = Vector(0, -1)
-
-    def damage(self, damage, type=None):
-        if type is None:
-            self.health -= damage
 
     def move(self, time_delta):
         self.position += self.heading * time_delta * self.speed
 
 
-class Bullet(SpriteRoot):
+class Ship(MoveMixin):
+    health = 100
+
+    def damage(self, damage, type=None):
+        if type is None:
+            self.health -= damage
+
+
+class Bullet(MoveMixin):
     size = 0.25
     speed = 10
     heading = Vector(0, 1)
@@ -39,7 +44,7 @@ class Bullet(SpriteRoot):
     image = "../resources/bullet.png"
 
     def on_update(self, update: event.Update, signal):
-        self.position += self.heading * update.time_delta * self.speed
+        self.move(update.time_delta)
         for target in update.scene.get(tag=self.target):
             if self.collides_with(target):
                 update.scene.remove(self)
@@ -104,6 +109,14 @@ class Level(SpriteRoot):
         origin = Vector(spawn_x, 10)
         for modifier in modifiers:
             scene.add(EnemyShip(position = origin + modifier), tags=["enemy", "ship"])
+
+
+class PowerUp(MoveMixin):
+    image = Animation("../resources/powerup/gun/{0..5}.png", 6)
+    speed = 1
+
+    def on_update(self, update_event: event.Update, signal):
+        self.move(update_event.time_delta)
 
 
 formations = [
