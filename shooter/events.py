@@ -1,6 +1,7 @@
 from abc import ABC
 from abc import abstractmethod
 from dataclasses import dataclass
+from typing import Any
 
 from ppb import BaseSprite
 
@@ -13,4 +14,10 @@ class Scene(ABC):
 
 @dataclass
 class Shoot:
+    scene: Scene = None
+
+
+@dataclass
+class PowerUp:
+    kind: Any
     scene: Scene = None

@@ -11,3 +11,5 @@ splash_length = 1
 window_pixel_width = grid_pixel_size * game_width
 window_pixel_height = grid_pixel_size * game_height
 resolution = window_pixel_width, window_pixel_height
+
+player_gun_max = 3

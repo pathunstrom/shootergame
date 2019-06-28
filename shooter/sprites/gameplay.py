@@ -1,3 +1,4 @@
+from enum import Enum
 from random import random as rand
 from random import choice
 
@@ -6,7 +7,9 @@ from ppb import events as event
 from ppb import flags as flag
 from ppb.features.animation import Animation
 
+from shooter import values
 from shooter.sprites import SpriteRoot
+from shooter.events import PowerUp as PowerUpEvent
 from shooter.events import Shoot
 
 
@@ -17,6 +20,10 @@ __all__ = [
     "Level",
     "PowerUp"
 ]
+
+
+class PowerUps(Enum):
+    GUN = "gun"
 
 
 class MoveMixin(SpriteRoot):
@@ -76,7 +83,17 @@ class Player(Ship):
         self.move(update.time_delta)
 
     def on_shoot(self, shoot_event: Shoot, __):
-        shoot_event.scene.add(Bullet(position=self.top.center), tags=["bullet", "friendly"])
+        scene = shoot_event.scene
+        tags = ["bullet", "friendly"]
+        scene.add(Bullet(position=self.top.center), tags=tags)
+        if self.guns > 0:
+            scene.add(Bullet(position=self.top.left), tags=tags)
+            scene.add(Bullet(position=self.top.right), tags=tags)
+
+    def on_power_up(self, power_up_event: PowerUpEvent, signal):
+        if (power_up_event.kind == PowerUps.GUN
+                and self.guns < values.player_gun_max):
+            self.guns += 1
 
     @property
     def image(self):
@@ -114,9 +131,14 @@ class Level(SpriteRoot):
 class PowerUp(MoveMixin):
     image = Animation("../resources/powerup/gun/{0..5}.png", 6)
     speed = 1
+    kind = PowerUps.GUN
 
     def on_update(self, update_event: event.Update, signal):
         self.move(update_event.time_delta)
+        for p in update_event.scene.get(kind=Player):
+            if (p.position - self.position).length * 2 < p.size + self.size:
+                signal(PowerUpEvent(self.kind))
+                update_event.scene.remove(self)
 
 
 formations = [
