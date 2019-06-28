@@ -5,8 +5,16 @@ from ppb import Vector
 from ppb import events as event
 from ppb import flags as flag
 
-from shooter import SpriteRoot
+from shooter.sprites import SpriteRoot
 from shooter.events import Shoot
+
+
+__all__ = [
+    "Bullet",
+    "Player",
+    "EnemyShip",
+    "Level"
+]
 
 
 class Ship(SpriteRoot):
@@ -28,7 +36,7 @@ class Bullet(SpriteRoot):
     heading = Vector(0, 1)
     target = "enemy"
     intensity = 1
-    image = "resources/bullet.png"
+    image = "../resources/bullet.png"
 
     def on_update(self, update: event.Update, signal):
         self.position += self.heading * update.time_delta * self.speed
@@ -40,7 +48,7 @@ class Bullet(SpriteRoot):
 
 class EnemyShip(Ship):
     health = 1
-    image = "resources/enemy/t0.png"
+    image = "../resources/enemy/t0.png"
 
     def on_update(self, update: event.Update, signal):
         if self.health <= 0:
@@ -67,7 +75,7 @@ class Player(Ship):
 
     @property
     def image(self):
-        return f"resources/ship/g{self.guns}e{self.engines}.png"
+        return f"../resources/ship/g{self.guns}e{self.engines}.png"
 
 
 class Level(SpriteRoot):

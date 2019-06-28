@@ -1,5 +1,7 @@
 from ppb import BaseSprite
 
+__all__ = ["SpriteRoot"]
+
 
 class SpriteRoot(BaseSprite):
 

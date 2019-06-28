@@ -5,12 +5,16 @@ from ppb.events import StartScene
 from ppb.events import ReplaceScene
 from ppb.events import Update
 
-from shooter.buttons import Start
+from shooter.sprites import Start
 from shooter.sprites import Player
 from shooter.sprites import Level
 from shooter.values import color_dark
 from shooter.values import grid_pixel_size
 from shooter.values import splash_length
+
+__all__ = [
+    "Splash"
+]
 
 
 class BugFix(BaseScene):

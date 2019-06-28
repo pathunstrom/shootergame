@@ -1,4 +1,5 @@
 import ppb
+from ppb import buttons
 from ppb import keycodes
 
 from shooter import systems
@@ -9,7 +10,7 @@ from shooter.values import resolution
 inputs = [
     systems.Axis("vertical", keycodes.S, keycodes.W),
     systems.Axis("horizontal", keycodes.A, keycodes.D),
-    systems.Impulse("fire", keycodes.Space, Shoot)
+    systems.Impulse("fire", buttons.Primary, Shoot)
 ]
 
 with ppb.GameEngine(Splash, systems=[systems.ControllerSystem],
