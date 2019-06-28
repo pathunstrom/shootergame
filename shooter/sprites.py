@@ -6,7 +6,6 @@ from ppb import events as event
 from ppb import flags as flag
 
 from shooter import SpriteRoot
-from shooter.controller import Controller
 from shooter.events import Shoot
 
 
@@ -57,7 +56,7 @@ class Player(Ship):
     engines = 0
 
     def on_update(self, update: event.Update, signal):
-        controller: Controller = next(update.scene.get(tag="controller"))
+        controller = update.controls
         self.heading = Vector(controller.get("horizontal"), controller.get("vertical"))
         if self.heading:
             self.heading = self.heading.normalize()

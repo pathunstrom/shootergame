@@ -1,16 +1,11 @@
 from ppb import BaseScene
-from ppb import keycodes as key
 from ppb.buttons import Primary
 from ppb.events import ButtonPressed
 from ppb.events import StartScene
 from ppb.events import ReplaceScene
 from ppb.events import Update
 
-from shooter import events as s_event
 from shooter.buttons import Start
-from shooter.controller import Axis
-from shooter.controller import Impulse
-from shooter.controller import Controller
 from shooter.sprites import Player
 from shooter.sprites import Level
 from shooter.values import color_dark
@@ -59,12 +54,5 @@ class Game(BugFix):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.add(Controller(
-            [
-                Axis("vertical", key.S, key.W),
-                Axis("horizontal", key.A, key.D),
-                Impulse("fire", key.Space, s_event.Shoot)
-            ]
-        ), tags=["controller"])
         self.add(Player(), tags=["ship", "player"])
         self.add(Level(), tags=["level", "subsystem"])
