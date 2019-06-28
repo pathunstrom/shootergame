@@ -50,7 +50,7 @@ class Menu(BugFix):
             return
         for button in self.get(tag="option"):
             if (button.left < button_press.position.x < button.right
-                    and button.top < button_press.position.y < button.bottom):
+                    and button.top > button_press.position.y > button.bottom):
                 signal(StartScene(Game, kwargs={"red": 1}))
 
 
@@ -61,7 +61,7 @@ class Game(BugFix):
         super().__init__(*args, **kwargs)
         self.add(Controller(
             [
-                Axis("vertical", key.W, key.S),
+                Axis("vertical", key.S, key.W),
                 Axis("horizontal", key.A, key.D),
                 Impulse("fire", key.Space, s_event.Shoot)
             ]

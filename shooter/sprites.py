@@ -13,7 +13,7 @@ from shooter.events import Shoot
 class Ship(SpriteRoot):
     health = 100
     speed = 3
-    heading = Vector(0, 1)
+    heading = Vector(0, -1)
 
     def damage(self, damage, type=None):
         if type is None:
@@ -26,13 +26,14 @@ class Ship(SpriteRoot):
 class Bullet(SpriteRoot):
     size = 0.25
     speed = 10
-    heading = Vector(0, -1)
+    heading = Vector(0, 1)
     target = "enemy"
     intensity = 1
+    image = "resources/bullet.png"
 
     def on_update(self, update: event.Update, signal):
         self.position += self.heading * update.time_delta * self.speed
-        for target in update.scene.get(tag="enemy"):
+        for target in update.scene.get(tag=self.target):
             if self.collides_with(target):
                 update.scene.remove(self)
                 target.damage(self.intensity)
@@ -40,7 +41,7 @@ class Bullet(SpriteRoot):
 
 class EnemyShip(Ship):
     health = 1
-    image = "enemy/t0.png"
+    image = "resources/enemy/t0.png"
 
     def on_update(self, update: event.Update, signal):
         if self.health <= 0:
@@ -49,7 +50,7 @@ class EnemyShip(Ship):
 
 
 class Player(Ship):
-    position = Vector(0, 9)
+    position = Vector(0, -9)
     heading = Vector(0, 0)
     speed = 5
     guns = 0
@@ -57,15 +58,17 @@ class Player(Ship):
 
     def on_update(self, update: event.Update, signal):
         controller: Controller = next(update.scene.get(tag="controller"))
-        self.heading = Vector(controller.get("horizontal"), controller.get("vertical")).normalize()
+        self.heading = Vector(controller.get("horizontal"), controller.get("vertical"))
+        if self.heading:
+            self.heading = self.heading.normalize()
         self.move(update.time_delta)
 
     def on_shoot(self, shoot_event: Shoot, __):
-        shoot_event.scene.add(Bullet(position=self.top.center, image="bullet/t0d0.png"), tags=["bullet", "friendly"])
+        shoot_event.scene.add(Bullet(position=self.top.center), tags=["bullet", "friendly"])
 
     @property
     def image(self):
-        return f"ship/g{self.guns}e{self.engines}.png"
+        return f"resources/ship/g{self.guns}e{self.engines}.png"
 
 
 class Level(SpriteRoot):
@@ -91,11 +94,11 @@ class Level(SpriteRoot):
         span, *modifiers = formation
         min_x = -span / 2
         spawn_x = min_x + (rand() * (10 - span))
-        origin = Vector(spawn_x, -10)
+        origin = Vector(spawn_x, 10)
         for modifier in modifiers:
             scene.add(EnemyShip(position = origin + modifier), tags=["enemy", "ship"])
 
 
 formations = [
-    (5, Vector(0, 0), Vector(-2, -1), Vector(2, -1))
+    (5, Vector(0, 0), Vector(-2, 1), Vector(2, 1))
 ]
