@@ -62,4 +62,3 @@ class Game(BugFix):
         super().__init__(*args, **kwargs)
         self.add(Player(), tags=["ship", "player"])
         self.add(Level(), tags=["level", "subsystem"])
-        self.add(PowerUp(position=Vector(0, 8), tags=["powerup"]))

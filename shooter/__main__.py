@@ -13,6 +13,6 @@ inputs = [
     systems.Impulse("fire", keycodes.Space, Shoot)
 ]
 
-with ppb.GameEngine(Splash, systems=[systems.ControllerSystem],
+with ppb.GameEngine(Splash, systems=[systems.ControllerSystem, systems.LifeCounter],
                     resolution=resolution, inputs=inputs) as ge:
     ge.run()

@@ -8,6 +8,9 @@ from ppb import events
 from ppb import keycodes as key
 from ppb.systems import System
 
+from shooter import values
+from shooter.sprites.gameplay import Player
+
 
 PhysicalInputs = Union[buttons.MouseButton, key.KeyCode]
 
@@ -147,3 +150,17 @@ class ControllerSystem(System):
     def on_button_released(self,
                            button_event: events.ButtonReleased, signal):
         self.handle_input_deactivated(button_event.button)
+
+
+class LifeCounter(System):
+    primed = False
+    lives = values.player_starting_lives
+
+    def on_idle(self, idle: events.Idle, signal):
+        if self.primed and self.lives:
+            idle.scene.add(Player())
+            self.primed = False
+
+    def on_player_died(self, died, signal):
+        self.lives -= 1
+        self.primed = True

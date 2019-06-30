@@ -9,6 +9,7 @@ from ppb.features.animation import Animation
 
 from shooter import values
 from shooter.sprites import SpriteRoot
+from shooter.events import PlayerDied
 from shooter.events import PowerUp as PowerUpEvent
 from shooter.events import Shoot
 
@@ -20,6 +21,10 @@ __all__ = [
     "Level",
     "PowerUp"
 ]
+
+
+class DamageTypes(Enum):
+    COLLISION = "collision"
 
 
 class PowerUps(Enum):
@@ -36,10 +41,12 @@ class MoveMixin(SpriteRoot):
 
 class Ship(MoveMixin):
     health = 100
+    armor = 0
+    mass = 100
 
-    def damage(self, damage, type=None):
-        if type is None:
-            self.health -= damage
+    def damage(self, damage, kind=DamageTypes.COLLISION):
+        if kind == DamageTypes.COLLISION:
+            self.health -= damage - self.armor
 
 
 class Bullet(MoveMixin):
@@ -66,6 +73,10 @@ class EnemyShip(Ship):
         if self.health <= 0:
             update.scene.remove(self)
         self.move(update.time_delta)
+        for player in update.scene.get(kind=Player):
+            if self.collides_with(player):
+                self.damage(player.mass, kind=DamageTypes.COLLISION)
+                player.damage(self.mass, kind=DamageTypes.COLLISION)
 
 
 class Player(Ship):
@@ -76,6 +87,9 @@ class Player(Ship):
     engines = 0
 
     def on_update(self, update: event.Update, signal):
+        if self.health <= 0:
+            update.scene.remove(self)
+            signal(PlayerDied())
         controller = update.controls
         self.heading = Vector(controller.get("horizontal"), controller.get("vertical"))
         if self.heading:

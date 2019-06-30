@@ -13,7 +13,7 @@ class Scene(ABC):
 
 
 @dataclass
-class Shoot:
+class PlayerDied:
     scene: Scene = None
 
 
@@ -21,3 +21,9 @@ class Shoot:
 class PowerUp:
     kind: Any
     scene: Scene = None
+
+
+@dataclass
+class Shoot:
+    scene: Scene = None
+
