@@ -7,6 +7,7 @@ from ppb.events import Update
 
 from shooter.sprites import Start
 from shooter.sprites import Player
+from shooter.systems import Strategies
 from shooter.values import color_dark
 from shooter.values import grid_pixel_size
 from shooter.values import splash_length
@@ -54,7 +55,7 @@ class Menu(BugFix):
 
 class Game(BugFix):
     background_color = color_dark
-    spawn_strategy = "endless"
+    spawn_strategy = Strategies.ENDLESS
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
