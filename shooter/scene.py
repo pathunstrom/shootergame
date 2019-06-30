@@ -1,5 +1,4 @@
 from ppb import BaseScene
-from ppb import Vector
 from ppb.buttons import Primary
 from ppb.events import ButtonPressed
 from ppb.events import StartScene
@@ -8,8 +7,6 @@ from ppb.events import Update
 
 from shooter.sprites import Start
 from shooter.sprites import Player
-from shooter.sprites import Level
-from shooter.sprites import PowerUp
 from shooter.values import color_dark
 from shooter.values import grid_pixel_size
 from shooter.values import splash_length
@@ -57,8 +54,8 @@ class Menu(BugFix):
 
 class Game(BugFix):
     background_color = color_dark
+    spawn_strategy = "endless"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add(Player(), tags=["ship", "player"])
-        self.add(Level(), tags=["level", "subsystem"])

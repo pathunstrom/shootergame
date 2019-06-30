@@ -1,5 +1,4 @@
 import ppb
-from ppb import buttons
 from ppb import keycodes
 
 from shooter import systems
@@ -13,6 +12,6 @@ inputs = [
     systems.Impulse("fire", keycodes.Space, Shoot)
 ]
 
-with ppb.GameEngine(Splash, systems=[systems.ControllerSystem, systems.LifeCounter],
+with ppb.GameEngine(Splash, systems=[systems.ControllerSystem, systems.LifeCounter, systems.EnemyLoader],
                     resolution=resolution, inputs=inputs) as ge:
     ge.run()

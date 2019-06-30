@@ -1,10 +1,7 @@
 from enum import Enum
-from random import random as rand
-from random import choice
 
 from ppb import Vector
 from ppb import events as event
-from ppb import flags as flag
 from ppb.features.animation import Animation
 
 from shooter import values
@@ -18,7 +15,6 @@ __all__ = [
     "Bullet",
     "Player",
     "EnemyShip",
-    "Level",
     "PowerUp"
 ]
 
@@ -114,34 +110,6 @@ class Player(Ship):
         return f"../resources/ship/g{self.guns}e{self.engines}.png"
 
 
-class Level(SpriteRoot):
-    image = flag.DoNotRender
-    counter = 0
-    spawn_at = .5
-    min_increment = 1.5
-    max_change = .25
-    last_increment = 2.5
-
-    def on_update(self, update: event.Update, signal):
-        self.counter += update.time_delta
-        if self.counter >= self.spawn_at:
-            formation = choice(formations)
-            self.spawn_formation(formation, update.scene)
-            increment = self.last_increment + (-self.max_change + (rand() * 2* self.max_change))
-            if increment <= self.min_increment:
-                increment = self.min_increment
-            self.spawn_at += increment
-            self.last_increment = increment
-
-    def spawn_formation(self, formation, scene):
-        span, *modifiers = formation
-        min_x = -span / 2
-        spawn_x = min_x + (rand() * (10 - span))
-        origin = Vector(spawn_x, 10)
-        for modifier in modifiers:
-            scene.add(EnemyShip(position = origin + modifier), tags=["enemy", "ship"])
-
-
 class PowerUp(MoveMixin):
     image = Animation("../resources/powerup/gun/{0..7}.png", 6)
     speed = 1
@@ -153,8 +121,3 @@ class PowerUp(MoveMixin):
             if (p.position - self.position).length * 2 < p.size + self.size:
                 signal(PowerUpEvent(self.kind))
                 update_event.scene.remove(self)
-
-
-formations = [
-    (5, Vector(0, 0), Vector(-2, 1), Vector(2, 1))
-]
