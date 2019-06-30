@@ -129,7 +129,7 @@ class Level(SpriteRoot):
 
 
 class PowerUp(MoveMixin):
-    image = Animation("../resources/powerup/gun/{0..5}.png", 6)
+    image = Animation("../resources/powerup/gun/{0..7}.png", 6)
     speed = 1
     kind = PowerUps.GUN
 
