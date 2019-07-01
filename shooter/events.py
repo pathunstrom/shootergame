@@ -21,6 +21,12 @@ class Scene(ABC):
 
 
 @dataclass
+class EnemyKilled:
+    enemy: Any
+    scene: Scene = None
+
+
+@dataclass
 class PlayerDied:
     scene: Scene = None
 
