@@ -5,8 +5,8 @@ from ppb.events import StartScene
 from ppb.events import ReplaceScene
 from ppb.events import Update
 
+from shooter.events import SetLives
 from shooter.sprites import Start
-from shooter.sprites import Player
 from shooter.systems import Strategies
 from shooter.values import color_dark
 from shooter.values import grid_pixel_size
@@ -50,13 +50,15 @@ class Menu(BugFix):
         for button in self.get(tag="option"):
             if (button.left < button_press.position.x < button.right
                     and button.top > button_press.position.y > button.bottom):
-                signal(StartScene(Game, kwargs={"red": 1}))
+                signal(StartScene(Game))
 
 
 class Game(BugFix):
     background_color = color_dark
     spawn_strategy = Strategies.ENDLESS
+    started = False
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.add(Player(), tags=["ship", "player"])
+    def on_update(self, update: Update, signal):
+        if not self.started:
+            signal(SetLives())
+            self.started = True

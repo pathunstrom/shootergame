@@ -2,6 +2,8 @@ from abc import ABC
 from abc import abstractmethod
 from dataclasses import dataclass
 from typing import Any
+from typing import Iterable
+
 
 from ppb import BaseSprite
 
@@ -9,7 +11,13 @@ from ppb import BaseSprite
 class Scene(ABC):
 
     @abstractmethod
-    def add(self, game_object: BaseSprite, tags: list) -> None: ...
+    def add(self, game_object: BaseSprite, tags: list = ()) -> None: ...
+
+    @abstractmethod
+    def get(self, kind: type=None, tag: str=None) -> Iterable: ...
+
+    @abstractmethod
+    def remove(self, game_object: Any) -> None: ...
 
 
 @dataclass
@@ -24,6 +32,15 @@ class PowerUp:
 
 
 @dataclass
+class SetLives:
+    scene: Scene = None
+
+
+@dataclass
 class Shoot:
     scene: Scene = None
 
+
+@dataclass
+class SpawnPlayer:
+    scene: Scene = None
