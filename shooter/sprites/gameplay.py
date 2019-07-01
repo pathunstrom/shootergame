@@ -1,14 +1,12 @@
 from enum import Enum
 
 from ppb import Vector
-from ppb import events as event
+from ppb import events as ppb_events
 from ppb.features.animation import Animation
 
 from shooter import values
+from shooter import events as shooter_events
 from shooter.sprites import SpriteRoot
-from shooter.events import PlayerDied
-from shooter.events import PowerUp as PowerUpEvent
-from shooter.events import Shoot
 
 
 __all__ = [
@@ -53,7 +51,7 @@ class Bullet(MoveMixin):
     intensity = 1
     image = "../resources/bullet.png"
 
-    def on_update(self, update: event.Update, signal):
+    def on_update(self, update: ppb_events.Update, signal):
         self.move(update.time_delta)
         for target in update.scene.get(tag=self.target):
             if self.collides_with(target):
@@ -65,9 +63,10 @@ class EnemyShip(Ship):
     health = 1
     image = "../resources/enemy/t0.png"
 
-    def on_update(self, update: event.Update, signal):
+    def on_update(self, update: ppb_events.Update, signal):
         if self.health <= 0:
             update.scene.remove(self)
+            signal(shooter_events.EnemyKilled(self))
         self.move(update.time_delta)
         for player in update.scene.get(kind=Player):
             if self.collides_with(player):
@@ -82,17 +81,17 @@ class Player(Ship):
     guns = 0
     engines = 0
 
-    def on_update(self, update: event.Update, signal):
+    def on_update(self, update: ppb_events.Update, signal):
         if self.health <= 0:
             update.scene.remove(self)
-            signal(PlayerDied())
+            signal(shooter_events.PlayerDied())
         controller = update.controls
         self.heading = Vector(controller.get("horizontal"), controller.get("vertical"))
         if self.heading:
             self.heading = self.heading.normalize()
         self.move(update.time_delta)
 
-    def on_shoot(self, shoot_event: Shoot, __):
+    def on_shoot(self, shoot_event: shooter_events.Shoot, _):
         scene = shoot_event.scene
         tags = ["bullet", "friendly"]
         scene.add(Bullet(position=self.top.center), tags=tags)
@@ -100,7 +99,7 @@ class Player(Ship):
             scene.add(Bullet(position=self.top.left), tags=tags)
             scene.add(Bullet(position=self.top.right), tags=tags)
 
-    def on_power_up(self, power_up_event: PowerUpEvent, signal):
+    def on_power_up(self, power_up_event: shooter_events.PowerUp, signal):
         if (power_up_event.kind == PowerUps.GUN
                 and self.guns < values.player_gun_max):
             self.guns += 1
@@ -115,9 +114,9 @@ class PowerUp(MoveMixin):
     speed = 1
     kind = PowerUps.GUN
 
-    def on_update(self, update_event: event.Update, signal):
+    def on_update(self, update_event: ppb_events.Update, signal):
         self.move(update_event.time_delta)
         for p in update_event.scene.get(kind=Player):
             if (p.position - self.position).length * 2 < p.size + self.size:
-                signal(PowerUpEvent(self.kind))
+                signal(shooter_events.PowerUp(self.kind))
                 update_event.scene.remove(self)
