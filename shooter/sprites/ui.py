@@ -1,3 +1,5 @@
+from ppb.systems import Image
+
 from shooter.events import SpawnPlayer
 from shooter.sprites import SpriteRoot
 
@@ -7,7 +9,7 @@ __all__ = [
 
 
 class LifeSymbol(SpriteRoot):
-    image = "../resources/ship/g0e0.png"
+    image = Image("shooter/resources/ship/g0e0.png")
     size = 0.5
 
     def kill(self, scene):
@@ -23,5 +25,5 @@ class LifeSymbolExplodes(SpriteRoot):
 
 
 class Start(SpriteRoot):
-    image = "../resources/start.png"
+    image = Image("shooter/resources/start.png")
     size = 4
