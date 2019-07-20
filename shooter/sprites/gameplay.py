@@ -52,6 +52,9 @@ class Bullet(MoveMixin):
     image = "../resources/bullet.png"
 
     def on_update(self, update: ppb_events.Update, signal):
+        if self.position.y > 10 or self.position.y < -10:
+            update.scene.remove(self)
+            return
         self.move(update.time_delta)
         for target in update.scene.get(tag=self.target):
             if self.collides_with(target):
