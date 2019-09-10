@@ -15,7 +15,7 @@ __all__ = [
 
 default_formations = (
     (5, Vector(0, 0), Vector(-2, 1), Vector(2, 1)),
-    # (1, Vector(0, 0), Vector(0, 3), Vector(0, 6)),
+    (1, Vector(0, 0), Vector(0, 3), Vector(0, 6)),
 )
 
 
