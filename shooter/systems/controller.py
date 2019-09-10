@@ -6,7 +6,7 @@ from ppb import GameEngine
 from ppb import buttons
 from ppb import events
 from ppb import keycodes as key
-from ppb.systems import System
+from ppb.systemslib import System
 
 __all__ = [
     "Axis",

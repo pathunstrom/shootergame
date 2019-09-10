@@ -1,5 +1,6 @@
 from enum import Enum
 
+from ppb import Image
 from ppb import Vector
 from ppb import events as ppb_events
 from ppb.features.animation import Animation
@@ -49,7 +50,7 @@ class Bullet(MoveMixin):
     heading = Vector(0, 1)
     target = "enemy"
     intensity = 1
-    image = "../resources/bullet.png"
+    image = "shooter/resources/bullet.png"
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.position.y > 10 or self.position.y < -10:
@@ -64,7 +65,7 @@ class Bullet(MoveMixin):
 
 class EnemyShip(Ship):
     health = 1
-    image = "../resources/enemy/t0.png"
+    image = Image("shooter/resources/enemy/t0.png")
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.health <= 0:
@@ -109,11 +110,11 @@ class Player(Ship):
 
     @property
     def image(self):
-        return f"../resources/ship/g{self.guns}e{self.engines}.png"
+        return f"shooter/resources/ship/g{self.guns}e{self.engines}.png"
 
 
 class PowerUp(MoveMixin):
-    image = Animation("../resources/powerup/gun/{0..7}.png", 6)
+    image = Animation("shooter/resources/powerup/gun/{0..7}.png", 6)
     speed = 1
     kind = PowerUps.GUN
 

@@ -1,5 +1,5 @@
 from ppb import Vector
-from ppb.systems import System
+from ppb.systemslib import System
 
 from shooter import values
 from shooter.events import SetLives

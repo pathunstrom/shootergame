@@ -1,6 +1,6 @@
 from random import randint
 
-from ppb.systems import System
+from ppb.systemslib import System
 
 from shooter.sprites import gameplay
 

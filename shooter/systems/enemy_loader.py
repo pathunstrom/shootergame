@@ -4,7 +4,7 @@ from random import random as rand
 
 from ppb import Vector
 from ppb import events
-from ppb.systems import System
+from ppb.systemslib import System
 
 from shooter.sprites import gameplay as game_sprites
 

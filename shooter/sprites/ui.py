@@ -7,7 +7,7 @@ __all__ = [
 
 
 class LifeSymbol(SpriteRoot):
-    image = "../resources/ship/g0e0.png"
+    image = "shooter/resources/ship/g0e0.png"
     size = 0.5
 
     def kill(self, scene):
@@ -23,5 +23,5 @@ class LifeSymbolExplodes(SpriteRoot):
 
 
 class Start(SpriteRoot):
-    image = "../resources/start.png"
+    image = "shooter/resources/start.png"
     size = 4
