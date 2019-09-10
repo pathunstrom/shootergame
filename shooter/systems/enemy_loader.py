@@ -48,7 +48,7 @@ class EndlessStrategy(NoStrategy):
         formation = choice(self.formations)
         span, *modifiers = formation
         min_x = -5 + (span/2)
-        spawn_x = min_x + (1 * (10 - span))
+        spawn_x = min_x + (rand() * (10 - span))
         origin = Vector(spawn_x, 10)
         for modifier in modifiers:
             scene.add(game_sprites.EnemyShip(position=origin + modifier), tags=["enemy", "ship"])
