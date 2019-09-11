@@ -50,7 +50,7 @@ class Bullet(MoveMixin):
     heading = Vector(0, 1)
     target = "enemy"
     intensity = 1
-    image = "shooter/resources/bullet.png"
+    image = Image("shooter/resources/bullet.png")
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.position.y > 10 or self.position.y < -10:
@@ -84,6 +84,15 @@ class Player(Ship):
     speed = 5
     guns = 0
     engines = 0
+    images = [
+        [
+            Image(f"shooter/resources/ship/g{g}e{e}.png")
+            for e
+            in range(4)
+        ]
+        for g
+        in range(4)
+    ]
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.health <= 0:
@@ -110,7 +119,7 @@ class Player(Ship):
 
     @property
     def image(self):
-        return f"shooter/resources/ship/g{self.guns}e{self.engines}.png"
+        return self.images[self.guns][self.engines]
 
 
 class PowerUp(MoveMixin):
