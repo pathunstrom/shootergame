@@ -1,6 +1,7 @@
 from enum import Enum
 
 from ppb import Image
+from ppb import Sound
 from ppb import Vector
 from ppb import events as ppb_events
 from ppb.features.animation import Animation
@@ -93,6 +94,9 @@ class Player(Ship):
         for g
         in range(4)
     ]
+    sounds = {
+        "laser": Sound("shooter/resources/sound/laser.wav")
+    }
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.health <= 0:
@@ -104,9 +108,10 @@ class Player(Ship):
             self.heading = self.heading.normalize()
         self.move(update.time_delta)
 
-    def on_shoot(self, shoot_event: shooter_events.Shoot, _):
+    def on_shoot(self, shoot_event: shooter_events.Shoot, signal):
         scene = shoot_event.scene
         tags = ["bullet", "friendly"]
+        signal(ppb_events.PlaySound(self.sounds["laser"]))
         scene.add(Bullet(position=self.top.center), tags=tags)
         if self.guns > 0:
             scene.add(Bullet(position=self.top.left), tags=tags)
