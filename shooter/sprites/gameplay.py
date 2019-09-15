@@ -27,6 +27,7 @@ class DamageTypes(Enum):
 class PowerUps(Enum):
     GUN = "gun"
     SHIELD = "shield"
+    ENGINE = "engine"
 
 
 class MoveMixin(SpriteRoot):
@@ -86,7 +87,6 @@ class EnemyShip(Ship):
 class Player(Ship):
     position = Vector(0, -9)
     heading = Vector(0, 0)
-    speed = 5
     guns = 0
     engines = 0
     images = [
@@ -124,9 +124,16 @@ class Player(Ship):
         if (power_up_event.kind == PowerUps.GUN
                 and self.guns < values.player_gun_max):
             self.guns += 1
+        if (power_up_event.kind == PowerUps.ENGINE
+                and self.engines < values.player_engine_max):
+            self.engines += 1
         elif power_up_event.kind == PowerUps.SHIELD:
             if not list(power_up_event.scene.get(tag="shield")):
                 power_up_event.scene.add(Shield(parent=self, position=self.position))
+
+    @property
+    def speed(self):
+        return 3 + (self.engines * 1.5)
 
     @property
     def image(self):
@@ -136,7 +143,8 @@ class Player(Ship):
 class PowerUp(MoveMixin):
     images = {
         PowerUps.GUN: Animation("shooter/resources/powerup/gun/{0..7}.png", 6),
-        PowerUps.SHIELD: Animation("shooter/resources/powerup/shield/sprite_{0..7}.png", 6)
+        PowerUps.SHIELD: Animation("shooter/resources/powerup/shield/sprite_{0..7}.png", 6),
+        PowerUps.ENGINE: Animation("shooter/resources/powerup/engine/sprite_{0..7}.png", 6)
     }
     speed = 1
     kind = PowerUps.GUN
