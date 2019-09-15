@@ -21,10 +21,12 @@ __all__ = [
 
 class DamageTypes(Enum):
     COLLISION = "collision"
+    SHIELD = "shield"
 
 
 class PowerUps(Enum):
     GUN = "gun"
+    SHIELD = "shield"
 
 
 class MoveMixin(SpriteRoot):
@@ -43,6 +45,8 @@ class Ship(MoveMixin):
     def damage(self, damage, kind=DamageTypes.COLLISION):
         if kind == DamageTypes.COLLISION:
             self.health -= damage - self.armor
+        elif kind == DamageTypes.SHIELD:  # Shields do full damage.
+            self.health -= damage
 
 
 class Bullet(MoveMixin):
@@ -112,15 +116,17 @@ class Player(Ship):
         scene = shoot_event.scene
         tags = ["bullet", "friendly"]
         signal(ppb_events.PlaySound(self.sounds["laser"]))
-        scene.add(Bullet(position=self.top.center), tags=tags)
-        if self.guns > 0:
-            scene.add(Bullet(position=self.top.left), tags=tags)
-            scene.add(Bullet(position=self.top.right), tags=tags)
+        initial_x, initial_y = self.top.center
+        for offset in range(2 * self.guns + 1):
+            scene.add(Bullet(position=Vector(initial_x + (-0.5 * self.guns) + (0.5 * offset), initial_y)))
 
     def on_power_up(self, power_up_event: shooter_events.PowerUp, signal):
         if (power_up_event.kind == PowerUps.GUN
                 and self.guns < values.player_gun_max):
             self.guns += 1
+        elif power_up_event.kind == PowerUps.SHIELD:
+            if not list(power_up_event.scene.get(tag="shield")):
+                power_up_event.scene.add(Shield(parent=self, position=self.position))
 
     @property
     def image(self):
@@ -128,9 +134,16 @@ class Player(Ship):
 
 
 class PowerUp(MoveMixin):
-    image = Animation("shooter/resources/powerup/gun/{0..7}.png", 6)
+    images = {
+        PowerUps.GUN: Animation("shooter/resources/powerup/gun/{0..7}.png", 6),
+        PowerUps.SHIELD: Animation("shooter/resources/powerup/shield/sprite_{0..7}.png", 6)
+    }
     speed = 1
     kind = PowerUps.GUN
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.image = self.images[self.kind]
 
     def on_update(self, update_event: ppb_events.Update, signal):
         self.move(update_event.time_delta)
@@ -138,3 +151,20 @@ class PowerUp(MoveMixin):
             if (p.position - self.position).length * 2 < p.size + self.size:
                 signal(shooter_events.PowerUp(self.kind))
                 update_event.scene.remove(self)
+
+
+class Shield(SpriteRoot):
+    image = Image("shooter/resources/shield.png")
+    parent: Ship = None
+    size = 2
+    impact = 1000
+
+    def on_update(self, event: ppb_events.Update, signal):
+        self.position = self.parent.position
+        enemy: EnemyShip
+        for enemy in event.scene.get(tag="enemy"):
+            if self.collides_with(enemy):
+                enemy.damage(self.impact, DamageTypes.SHIELD)
+
+                event.scene.remove(self)
+                break

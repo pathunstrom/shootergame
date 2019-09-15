@@ -17,7 +17,8 @@ class LifeCounter(System):
 
     @staticmethod
     def spawn_player(scene):
-        scene.add(game_sprites.Player(), tags=["ship", "player"])
+        player = game_sprites.Player()
+        scene.add(player, tags=["ship", "player"])
 
     def on_player_died(self, died, signal):
         next(died.scene.get(tag=f"life_{self.lives}")).kill(died.scene)
