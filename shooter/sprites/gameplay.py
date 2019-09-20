@@ -9,6 +9,7 @@ from ppb.features.animation import Animation
 from shooter import values
 from shooter import events as shooter_events
 from shooter.sprites import SpriteRoot
+from shooter.sprites.root import RunOnceAnimation
 
 
 __all__ = [
@@ -99,13 +100,22 @@ class Player(Ship):
         in range(4)
     ]
     sounds = {
-        "laser": Sound("shooter/resources/sound/laser.wav")
+        "laser": Sound("shooter/resources/sound/laser.wav"),
+        "dead": Sound("shooter/resources/sound/life-lost.wav")
     }
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.health <= 0:
             update.scene.remove(self)
-            signal(shooter_events.PlayerDied())
+            update.scene.add(RunOnceAnimation(
+                position=self.position,
+                life_span=0.25,
+                image=Animation("shooter/resources/explosions/player/sprite_{1..7}.png", 24),
+                end_event=shooter_events.PlayerDied(),
+                size=2
+            ))
+            signal(ppb_events.PlaySound(self.sounds["dead"]))
+
         controller = update.controls
         self.heading = Vector(controller.get("horizontal"), controller.get("vertical"))
         if self.heading:
