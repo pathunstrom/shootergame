@@ -2,5 +2,8 @@ powerup.wav:
     * LittleRobotSoundFactory
     * https://freesound.org/people/LittleRobotSoundFactory/sounds/270341/
 hit.wav:
-    * LittleRobotSoundFactory
-    * https://freesound.org/people/LittleRobotSoundFactory/sounds/270549/
+    * Created in bfxr
+    * https://www.bfxr.net/
+laser2.wav:
+    * Created in bfxr
+    * https://www.bfxr.net/

@@ -20,6 +20,15 @@ __all__ = [
 ]
 
 
+sounds = {
+    "power_up": Sound("shooter/resources/sound/pickup.wav"),
+    "player_laser": Sound("shooter/resources/sound/laser.wav"),
+    "enemy_laser": Sound("shooter/resources/sound/laser2.wav"),
+    "hit": Sound("shooter/resources/sound/hit.wav"),
+    "dead": Sound("shooter/resources/sound/life-lost.wav")
+}
+
+
 class DamageTypes(Enum):
     COLLISION = "collision"
     SHIELD = "shield"
@@ -78,6 +87,7 @@ class EnemyShip(Ship):
         if self.health <= 0:
             update.scene.remove(self)
             signal(shooter_events.EnemyKilled(self))
+            signal(ppb_events.PlaySound(sounds["hit"]))
         self.move(update.time_delta)
         for player in update.scene.get(kind=Player):
             if self.collides_with(player):
@@ -99,10 +109,6 @@ class Player(Ship):
         for g
         in range(4)
     ]
-    sounds = {
-        "laser": Sound("shooter/resources/sound/laser.wav"),
-        "dead": Sound("shooter/resources/sound/life-lost.wav")
-    }
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.health <= 0:
@@ -114,7 +120,7 @@ class Player(Ship):
                 end_event=shooter_events.PlayerDied(),
                 size=2
             ))
-            signal(ppb_events.PlaySound(self.sounds["dead"]))
+            signal(ppb_events.PlaySound(sounds["dead"]))
 
         controller = update.controls
         self.heading = Vector(controller.get("horizontal"), controller.get("vertical"))
@@ -125,7 +131,7 @@ class Player(Ship):
     def on_shoot(self, shoot_event: shooter_events.Shoot, signal):
         scene = shoot_event.scene
         tags = ["bullet", "friendly"]
-        signal(ppb_events.PlaySound(self.sounds["laser"]))
+        signal(ppb_events.PlaySound(sounds["player_laser"]))
         initial_x, initial_y = self.top.center
         for offset in range(2 * self.guns + 1):
             scene.add(Bullet(position=Vector(initial_x + (-0.5 * self.guns) + (0.5 * offset), initial_y)))
@@ -168,6 +174,7 @@ class PowerUp(MoveMixin):
         for p in update_event.scene.get(kind=Player):
             if (p.position - self.position).length * 2 < p.size + self.size:
                 signal(shooter_events.PowerUp(self.kind))
+                signal(ppb_events.PlaySound(sounds["power_up"]))
                 update_event.scene.remove(self)
 
 
