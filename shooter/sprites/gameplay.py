@@ -25,7 +25,8 @@ sounds = {
     "player_laser": Sound("shooter/resources/sound/laser.wav"),
     "enemy_laser": Sound("shooter/resources/sound/laser2.wav"),
     "hit": Sound("shooter/resources/sound/hit.wav"),
-    "dead": Sound("shooter/resources/sound/life-lost.wav")
+    "dead": Sound("shooter/resources/sound/life-lost.wav"),
+    "shield_down": Sound("shooter/resources/sound/shield_down.wav")
 }
 
 
@@ -190,6 +191,6 @@ class Shield(SpriteRoot):
         for enemy in event.scene.get(tag="enemy"):
             if self.collides_with(enemy):
                 enemy.damage(self.impact, DamageTypes.SHIELD)
-
                 event.scene.remove(self)
+                signal(ppb_events.PlaySound(sounds["shield_down"]))
                 break

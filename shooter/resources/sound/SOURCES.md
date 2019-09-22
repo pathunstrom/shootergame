@@ -7,3 +7,6 @@ hit.wav:
 laser2.wav:
     * Created in bfxr
     * https://www.bfxr.net/
+shield_down.wav:
+    * Created in bfxr
+    * https://www.bfxr.net/
