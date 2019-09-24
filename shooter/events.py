@@ -27,6 +27,11 @@ class EnemyKilled:
 
 
 @dataclass
+class GameOver:
+    scene: Scene = None
+
+
+@dataclass
 class PlayerDied:
     scene: Scene = None
 
@@ -40,7 +45,7 @@ class PowerUp:
 @dataclass
 class ScoreChange:
     score: int
-
+    debug: str = "Score change"
 
 @dataclass
 class SetLives:

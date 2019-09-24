@@ -17,13 +17,16 @@ class Number(SpriteRoot):
     ]
     image = numbers[0]
     size = 0.75
-    value_function = None
+    place = 0
 
     def on_score_change(self, event, signal):
-        self.image = self.numbers[self.value_function(event.score)]
+        self.update_image(event.score)
 
     def __repr__(self):
-        return f"Number<{self.numbers.index(self.image)}>"
+        return f"<Number image={self.image}, place={self.place}>"
+
+    def update_image(self, score):
+        self.image = self.numbers[((score // 10 ** self.place) % 10)]
 
 
 class LifeSymbol(SpriteRoot):

@@ -1,5 +1,3 @@
-from math import pow
-
 from ppb import events as ppb_events
 from ppb import Vector
 from ppb.systemslib import System
@@ -12,12 +10,6 @@ from shooter.sprites import ui
 __all__ = ["ScoringSystem"]
 
 
-def _generate_value_function(place_value):
-    def _value_function(score):
-        return int((score // place_value) % 10)
-    return _value_function
-
-
 class ScoringSystem(System):
     high_score = 0
     score = 0
@@ -27,10 +19,8 @@ class ScoringSystem(System):
     def generate_score_board(scene, start_position, score):
         last_number = None
         for x in range(6, -1, -1):
-            place_value = 10**x
-            value_function = _generate_value_function(place_value)
-            number = ui.Number(image=ui.Number.numbers[value_function(score)],
-                               value_function=value_function)
+            number = ui.Number(place=x)
+            number.update_image(score)
             if last_number is None:
                 number.position = start_position
             else:
@@ -39,13 +29,20 @@ class ScoringSystem(System):
             scene.add(number)
             last_number = number
 
-    def on_idle(self, _, signal):
-        if self.last_score != self.score:
+    def on_idle(self, event, signal):
+        if isinstance(event.scene, scenes.Game) and self.last_score != self.score:
             signal(shooter_events.ScoreChange(self.score))
             self.last_score = self.score
+        elif isinstance(event.scene, scenes.Menu):
+            signal(shooter_events.ScoreChange(self.high_score))
 
     def on_enemy_killed(self, event: shooter_events.EnemyKilled, signal):
         self.score += event.enemy.points
+
+    def on_game_over(self, event: shooter_events.GameOver, signal):
+        if self.score > self.high_score:
+            self.high_score = self.score
+        self.score = 0
 
     def on_scene_started(self, event: ppb_events.SceneStarted, signal):
         if isinstance(event.scene, scenes.Menu):
@@ -53,3 +50,7 @@ class ScoringSystem(System):
             self.generate_score_board(event.scene, Vector(ui.Number.size * -3, -5), self.high_score)
         if isinstance(event.scene, scenes.Game):
             self.generate_score_board(event.scene, Vector(0, 9.5), self.score)
+
+    def on_scene_continued(self, event: ppb_events.SceneContinued, signal):
+        if isinstance(event.scene, scenes.Menu):
+            signal(shooter_events.ScoreChange(self.high_score, "High Score Change"))

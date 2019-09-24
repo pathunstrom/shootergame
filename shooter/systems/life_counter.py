@@ -1,7 +1,9 @@
 from ppb import Vector
+from ppb.events import StopScene
 from ppb.systemslib import System
 
 from shooter import values
+from shooter.events import GameOver
 from shooter.events import SetLives
 from shooter.events import SpawnPlayer
 from shooter.sprites import gameplay as game_sprites
@@ -40,3 +42,6 @@ class LifeCounter(System):
         self.lives -= 1
         if self.lives:
             self.spawn_player(spawn.scene)
+        else:
+            signal(GameOver())
+            signal(StopScene())

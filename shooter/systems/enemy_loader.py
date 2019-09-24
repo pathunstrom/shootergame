@@ -74,7 +74,13 @@ class EnemyLoader(System):
         self.formations = list(formations)
 
     def on_scene_started(self, started: events.SceneStarted, signal):
-        strategy = getattr(started.scene, "spawn_strategy", Strategies.NONE).value
+        self.manage_strategy(started.scene)
+
+    def on_scene_continued(self, continued: events.SceneContinued, signal):
+        self.manage_strategy(continued.scene)
+
+    def manage_strategy(self, scene):
+        strategy = getattr(scene, "spawn_strategy", Strategies.NONE).value
         self.strategy = strategy(self.formations)
 
     def on_idle(self, idle: events.Idle, signal):
