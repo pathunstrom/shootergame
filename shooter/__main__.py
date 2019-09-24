@@ -17,7 +17,8 @@ with ppb.GameEngine(Splash,
                         systems.ControllerSystem,
                         systems.LifeCounter,
                         systems.EnemyLoader,
-                        systems.PowerUp
+                        systems.PowerUp,
+                        systems.ScoringSystem,
                     ],
                     resolution=resolution, inputs=inputs) as ge:
     ge.run()

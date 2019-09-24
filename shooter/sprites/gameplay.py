@@ -82,6 +82,7 @@ class Bullet(MoveMixin):
 
 class EnemyShip(Ship):
     health = 1
+    points = 1
     image = Image("shooter/resources/enemy/t0.png")
 
     def on_update(self, update: ppb_events.Update, signal):

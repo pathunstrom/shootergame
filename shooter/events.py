@@ -38,6 +38,11 @@ class PowerUp:
 
 
 @dataclass
+class ScoreChange:
+    score: int
+
+
+@dataclass
 class SetLives:
     scene: Scene = None
 
