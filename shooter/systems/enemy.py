@@ -37,41 +37,50 @@ class Formation(NamedTuple):
 enemy_types = {
     "patrol": game_sprites.PatrolShip,
     "cargo": game_sprites.CargoShip,
+    "escort": game_sprites.EscortFrigate,
 }
 
 
 default_formations: Iterable[Formation] = (
+    # Formation(
+    #     "cargo ship",
+    #     1,
+    #     ["cargo"],
+    #     [Vector(0, 0)],
+    #     0,
+    #     3
+    # ),
+    # Formation(
+    #     "scout",
+    #     1,
+    #     ["patrol"],
+    #     [Vector(0, 0)],
+    #     0,
+    #     5
+    # ),
+    # Formation(
+    #     "convoy",
+    #     1,
+    #     ["cargo", "cargo", "cargo"],
+    #     [Vector(0, 0), Vector(0, 3), Vector(0, 6)],
+    #     3,
+    #     10,
+    # ),
+    # Formation(
+    #     "patrol group",
+    #     5,
+    #     ["patrol", "patrol", "patrol"],
+    #     [Vector(0, 0), Vector(-2, 1), Vector(2, 1)],
+    #     5,
+    #     15,
+    # ),
     Formation(
-        "cargo ship",
-        1,
-        ["cargo"],
-        [Vector(0, 0)],
-        0,
-        3
-    ),
-    Formation(
-        "scout",
-        1,
-        ["patrol"],
-        [Vector(0, 0)],
-        0,
-        5
-    ),
-    Formation(
-        "convoy",
-        1,
-        ["cargo", "cargo", "cargo"],
-        [Vector(0, 0), Vector(0, 3), Vector(0, 6)],
+        "escorted convoy",
         3,
-        10,
-    ),
-    Formation(
-        "patrol group",
-        5,
-        ["patrol", "patrol", "patrol"],
-        [Vector(0, 0), Vector(-2, 1), Vector(2, 1)],
-        5,
-        15,
+        ["cargo", "escort", "cargo", "cargo"],
+        [Vector(0, 0), Vector(3, 0), Vector(0, 3), Vector(0, 6)],
+        # 10,
+        # 20
     ),
 )
 

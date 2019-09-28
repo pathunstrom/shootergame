@@ -171,6 +171,53 @@ class CargoShip(EnemyShip):
         super().on_update(update, signal)
 
 
+class EscortFrigate(EnemyShip):
+    health = 10
+    image = Image("shooter/resources/enemies/escort.png")
+    speed = 4
+    cooldown_counter = 0
+    next_shot = 0
+    shots = []
+    shooting = False
+    escorting = None
+
+    def on_update(self, update: ppb_events.Update, signal):
+        if self.escorting is not None or self.escorting not in update.scene:
+            cargo_ships = list(update.scene.get(kind=CargoShip))
+            if cargo_ships:
+                self.escorting = cargo_ships[0]  # We can modify this later. Might be better handled by a subsystem.
+            else:
+                self.escorting = None
+        if self.escorting is not None:
+            target = (self.position - self.escorting.position).scale(3)
+            heading = Vector(0, -1) + (target - self.position)
+            self.heading = heading.normalize()
+        super().on_update(update, signal)
+        self.cooldown_counter += update.time_delta
+        if self.cooldown_counter >= self.next_shot:
+            if not self.shots:
+                self.shots = [5, 0, -5]  # Modifiers to the y component of the player position.
+            players = list(update.scene.get(kind=Player))
+            if not players:
+                return
+            player = players.pop()
+            shot_modifier = self.shots.pop()
+            shot_vector = player.position - self.position
+            shot_vector = Vector(shot_vector.x, shot_vector.y + shot_modifier)
+            bullet = Bullet(
+                position=self.position,
+                heading=shot_vector.normalize(),
+                target="player"
+            )
+            bullet.facing = -shot_vector
+            update.scene.add(bullet)
+            self.cooldown_counter = 0
+            if self.shots:
+                self.next_shot = 0.25
+            else:
+                self.next_shot = 1.25
+
+
 class Player(Ship):
     position = Vector(0, -9)
     heading = Vector(0, 0)
