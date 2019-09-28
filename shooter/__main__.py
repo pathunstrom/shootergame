@@ -19,6 +19,7 @@ with ppb.GameEngine(Splash,
                         systems.EnemyLoader,
                         systems.PowerUp,
                         systems.ScoringSystem,
+                        systems.EnemyComms,
                     ],
                     resolution=resolution, inputs=inputs) as ge:
     ge.run()

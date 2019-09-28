@@ -71,6 +71,7 @@ class Bullet(MoveMixin):
     target = "enemy"
     intensity = 5
     image = Image("shooter/resources/bullet.png")
+    kill = False
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.position.y > 10 or self.position.y < -10:
@@ -79,21 +80,45 @@ class Bullet(MoveMixin):
         self.move(update.time_delta)
         for target in update.scene.get(tag=self.target):
             if self.collides_with(target):
-                update.scene.remove(self)
+                self.kill = True
                 target.damage(self.intensity, kind=DamageTypes.BULLET)
+        if self.kill:
+            update.scene.remove(self)
+
+
+class Alert(Bullet):
+    target = "there is none"
+    image = Image("shooter/resources/enemies/message.png")
+    speed = 5
+    size = 0.5
+
+
+class Beacon(MoveMixin):
+    heading = Vector(0, -1)
+    life_span = 2
+    image = Image("shooter/resources/enemies/beacon.png")
+    size = 0.5
+
+    def on_update(self, update: ppb_events.Update, signal):
+        self.life_span -= update.time_delta
+        if self.life_span <= 0:
+            update.scene.remove(self)
+        for enemy in update.scene.get(kind=EnemyShip):
+            if (self.position - enemy.position).length < 1:
+                signal(shooter_events.EnemyAlerted(self))
+                update.scene.remove(self)
+                break
 
 
 class EnemyShip(Ship):
     health = 1
     upgrade_points = 1
     points = 1
-    image = Image("shooter/resources/enemy/patrol.png")
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.health <= 0:
             update.scene.remove(self)
             signal(shooter_events.EnemyKilled(self))
-            signal(ppb_events.PlaySound(sounds["hit"]))
         if self.position.y <= -11:
             update.scene.remove(self)
             signal(shooter_events.EnemyEscaped(self))
@@ -118,7 +143,7 @@ class PatrolShip(EnemyShip):
             player = p.pop()
             if (player.position - self.position).length < self.critical_distance:
                 if not self.signaled:
-                    signal(shooter_events.PlayerSpotted())
+                    signal(shooter_events.EnemyAlerted(self))
                     self.signaled = True
                     self.points = 10
         super().on_update(event, signal)

@@ -21,6 +21,12 @@ class Scene(ABC):
 
 
 @dataclass
+class EnemyAlerted:
+    source: Any
+    scene: Scene = None
+
+
+@dataclass
 class EnemyKilled:
     enemy: Any
     scene: Scene = None
@@ -39,11 +45,6 @@ class GameOver:
 
 @dataclass
 class PlayerDied:
-    scene: Scene = None
-
-
-@dataclass
-class PlayerSpotted:
     scene: Scene = None
 
 
