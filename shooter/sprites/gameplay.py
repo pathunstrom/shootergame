@@ -30,12 +30,6 @@ sounds = {
 }
 
 
-class DamageTypes(Enum):
-    COLLISION = "collision"
-    BULLET = "bullet"
-    SHIELD = "shield"
-
-
 class PowerUps(Enum):
     GUN = "gun"
     SHIELD = "shield"
@@ -50,18 +44,15 @@ class MoveMixin(SpriteRoot):
         self.position += self.heading * time_delta * self.speed
 
 
-class Ship(MoveMixin):
+class DamageMixin(SpriteRoot):
     health = 100
-    armor = 0
-    mass = 100
 
-    def damage(self, damage, kind=DamageTypes.COLLISION):
-        if kind == DamageTypes.COLLISION:
-            self.health -= damage - self.armor
-        elif kind == DamageTypes.SHIELD:  # Shields do full damage.
-            self.health -= damage
-        else:
-            self.health -= damage - self.armor * 2
+    def damage(self, damage):
+        self.health -= damage
+
+
+class Ship(MoveMixin, DamageMixin):
+    mass = 100
 
 
 class Bullet(MoveMixin):
@@ -81,7 +72,7 @@ class Bullet(MoveMixin):
         for target in update.scene.get(tag=self.target):
             if self.collides_with(target):
                 self.kill = True
-                target.damage(self.intensity, kind=DamageTypes.BULLET)
+                target.damage(self.intensity)
         if self.kill:
             update.scene.remove(self)
 
@@ -125,8 +116,8 @@ class EnemyShip(Ship):
         self.move(update.time_delta)
         for player in update.scene.get(kind=Player):
             if self.collides_with(player):
-                self.damage(player.mass, kind=DamageTypes.COLLISION)
-                player.damage(self.mass, kind=DamageTypes.COLLISION)
+                self.damage(player.mass)
+                player.damage(self.mass)
 
 
 class PatrolShip(EnemyShip):
@@ -174,12 +165,13 @@ class CargoShip(EnemyShip):
 class EscortFrigate(EnemyShip):
     health = 10
     image = Image("shooter/resources/enemies/escort.png")
-    speed = 4
+    speed = 3
     cooldown_counter = 0
     next_shot = 0
     shots = []
     shooting = False
     escorting = None
+    points = 15
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.escorting is not None or self.escorting not in update.scene:
@@ -192,18 +184,23 @@ class EscortFrigate(EnemyShip):
             target = (self.position - self.escorting.position).scale(3)
             heading = Vector(0, -1) + (target - self.position)
             self.heading = heading.normalize()
+        else:
+            self.heading = Vector(0, -1)
         super().on_update(update, signal)
         self.cooldown_counter += update.time_delta
         if self.cooldown_counter >= self.next_shot:
             if not self.shots:
-                self.shots = [5, 0, -5]  # Modifiers to the y component of the player position.
-            players = list(update.scene.get(kind=Player))
-            if not players:
-                return
-            player = players.pop()
-            shot_modifier = self.shots.pop()
-            shot_vector = player.position - self.position
-            shot_vector = Vector(shot_vector.x, shot_vector.y + shot_modifier)
+                players = list(update.scene.get(kind=Player))
+                if not players:
+                    return
+                player = players.pop()
+                self.shots = [
+                    player.position + Vector(0, 2),
+                    player.position,
+                    player.position + Vector(0, -2)
+                ]
+            shot_target = self.shots.pop()
+            shot_vector = shot_target - self.position
             bullet = Bullet(
                 position=self.position,
                 heading=shot_vector.normalize(),
@@ -213,9 +210,9 @@ class EscortFrigate(EnemyShip):
             update.scene.add(bullet)
             self.cooldown_counter = 0
             if self.shots:
-                self.next_shot = 0.25
+                self.next_shot = 0.33
             else:
-                self.next_shot = 1.25
+                self.next_shot = 2.5
 
 
 class Player(Ship):
@@ -223,6 +220,7 @@ class Player(Ship):
     heading = Vector(0, 0)
     guns = 0
     engines = 0
+    health = 20
     images = [
         [
             Image(f"shooter/resources/ship/g{g}e{e}.png")
@@ -257,7 +255,7 @@ class Player(Ship):
         signal(ppb_events.PlaySound(sounds["player_laser"]))
         initial_x, initial_y = self.top.center
         for offset in range(2 * self.guns + 1):
-            scene.add(Bullet(position=Vector(initial_x + (-0.5 * self.guns) + (0.5 * offset), initial_y)))
+            scene.add(Bullet(position=Vector(initial_x + (-0.5 * self.guns) + (0.5 * offset), initial_y), tags=tags))
 
     def on_power_up(self, power_up_event: shooter_events.PowerUp, signal):
         if (power_up_event.kind == PowerUps.GUN
@@ -268,7 +266,7 @@ class Player(Ship):
             self.engines += 1
         elif power_up_event.kind == PowerUps.SHIELD:
             if not list(power_up_event.scene.get(tag="shield")):
-                power_up_event.scene.add(Shield(parent=self, position=self.position))
+                power_up_event.scene.add(Shield(parent=self, position=self.position), tags=["player"])
 
     @property
     def speed(self):
@@ -301,18 +299,22 @@ class PowerUp(MoveMixin):
                 update_event.scene.remove(self)
 
 
-class Shield(SpriteRoot):
+class Shield(DamageMixin):
     image = Image("shooter/resources/shield.png")
     parent: Ship = None
     size = 2
     impact = 1000
+    health = 15
 
     def on_update(self, event: ppb_events.Update, signal):
         self.position = self.parent.position
+        if self.health <= 0:
+            event.scene.remove(self)
+            return
         enemy: EnemyShip
         for enemy in event.scene.get(tag="enemy"):
             if self.collides_with(enemy):
-                enemy.damage(self.impact, DamageTypes.SHIELD)
+                enemy.damage(self.impact)
                 event.scene.remove(self)
                 signal(ppb_events.PlaySound(sounds["shield_down"]))
                 break
