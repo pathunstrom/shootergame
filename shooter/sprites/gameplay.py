@@ -94,7 +94,7 @@ class EnemyShip(Ship):
             update.scene.remove(self)
             signal(shooter_events.EnemyKilled(self))
             signal(ppb_events.PlaySound(sounds["hit"]))
-        if self.position.y <= -7:
+        if self.position.y <= -11:
             update.scene.remove(self)
             signal(shooter_events.EnemyEscaped(self))
         self.move(update.time_delta)
@@ -109,23 +109,29 @@ class PatrolShip(EnemyShip):
     image = Image("shooter/resources/enemies/patrol.png")
     speed = 5
     critical_distance = 4
+    points = 20
+    signaled = False
 
     def on_update(self, event: ppb_events.Update, signal):
         p = list(event.scene.get(kind=Player))
         if p:
             player = p.pop()
             if (player.position - self.position).length < self.critical_distance:
-                signal(shooter_events.PlayerSpotted())
+                if not self.signaled:
+                    signal(shooter_events.PlayerSpotted())
+                    self.signaled = True
+                    self.points = 10
         super().on_update(event, signal)
 
 
 class CargoShip(EnemyShip):
-    health = 20
+    health = 25
     image = Image("shooter/resources/enemies/cargo.png")
     speed = 2
     critical_distance = 5
     upgrade_points = 5
     accelerate = False
+    max_speed = 5
 
     def on_update(self, update: ppb_events.Update, signal):
         p = list(update.scene.get(kind=Player))
@@ -133,8 +139,10 @@ class CargoShip(EnemyShip):
             player = p.pop()
             if (player.position - self.position).length < self.critical_distance:
                 self.accelerate = True
-        if self.accelerate:
-            self.speed *= 1.1
+        if self.accelerate and self.speed < self.max_speed:
+            self.speed *= 1.02
+            if self.speed > self.max_speed:
+                self.speed = self.max_speed
         super().on_update(update, signal)
 
 
