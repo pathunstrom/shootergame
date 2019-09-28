@@ -27,12 +27,23 @@ class EnemyKilled:
 
 
 @dataclass
+class EnemyEscaped:
+    enemy: Any
+    scene: Scene = None
+
+
+@dataclass
 class GameOver:
     scene: Scene = None
 
 
 @dataclass
 class PlayerDied:
+    scene: Scene = None
+
+
+@dataclass
+class PlayerSpotted:
     scene: Scene = None
 
 

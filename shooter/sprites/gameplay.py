@@ -32,6 +32,7 @@ sounds = {
 
 class DamageTypes(Enum):
     COLLISION = "collision"
+    BULLET = "bullet"
     SHIELD = "shield"
 
 
@@ -59,6 +60,8 @@ class Ship(MoveMixin):
             self.health -= damage - self.armor
         elif kind == DamageTypes.SHIELD:  # Shields do full damage.
             self.health -= damage
+        else:
+            self.health -= damage - self.armor * 2
 
 
 class Bullet(MoveMixin):
@@ -66,7 +69,7 @@ class Bullet(MoveMixin):
     speed = 10
     heading = Vector(0, 1)
     target = "enemy"
-    intensity = 1
+    intensity = 5
     image = Image("shooter/resources/bullet.png")
 
     def on_update(self, update: ppb_events.Update, signal):
@@ -77,24 +80,62 @@ class Bullet(MoveMixin):
         for target in update.scene.get(tag=self.target):
             if self.collides_with(target):
                 update.scene.remove(self)
-                target.damage(self.intensity)
+                target.damage(self.intensity, kind=DamageTypes.BULLET)
 
 
 class EnemyShip(Ship):
     health = 1
+    upgrade_points = 1
     points = 1
-    image = Image("shooter/resources/enemy/t0.png")
+    image = Image("shooter/resources/enemy/patrol.png")
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.health <= 0:
             update.scene.remove(self)
             signal(shooter_events.EnemyKilled(self))
             signal(ppb_events.PlaySound(sounds["hit"]))
+        if self.position.y <= -7:
+            update.scene.remove(self)
+            signal(shooter_events.EnemyEscaped(self))
         self.move(update.time_delta)
         for player in update.scene.get(kind=Player):
             if self.collides_with(player):
                 self.damage(player.mass, kind=DamageTypes.COLLISION)
                 player.damage(self.mass, kind=DamageTypes.COLLISION)
+
+
+class PatrolShip(EnemyShip):
+    health = 15
+    image = Image("shooter/resources/enemies/patrol.png")
+    speed = 5
+    critical_distance = 4
+
+    def on_update(self, event: ppb_events.Update, signal):
+        p = list(event.scene.get(kind=Player))
+        if p:
+            player = p.pop()
+            if (player.position - self.position).length < self.critical_distance:
+                signal(shooter_events.PlayerSpotted())
+        super().on_update(event, signal)
+
+
+class CargoShip(EnemyShip):
+    health = 20
+    image = Image("shooter/resources/enemies/cargo.png")
+    speed = 2
+    critical_distance = 5
+    upgrade_points = 5
+    accelerate = False
+
+    def on_update(self, update: ppb_events.Update, signal):
+        p = list(update.scene.get(kind=Player))
+        if p:
+            player = p.pop()
+            if (player.position - self.position).length < self.critical_distance:
+                self.accelerate = True
+        if self.accelerate:
+            self.speed *= 1.1
+        super().on_update(update, signal)
 
 
 class Player(Ship):

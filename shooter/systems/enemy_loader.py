@@ -1,4 +1,7 @@
 from enum import Enum
+from typing import Iterable
+from typing import NamedTuple
+from typing import Tuple
 from random import choice
 from random import random as rand
 
@@ -13,9 +16,34 @@ __all__ = [
     "EnemyLoader"
 ]
 
+
+class Formation(NamedTuple):
+    name: str
+    spread: int
+    ships: Iterable[str]
+    offsets: Iterable[Vector]
+    difficulty_floor: int = 0
+
+
+enemy_types = {
+    "patrol": game_sprites.PatrolShip,
+    "cargo": game_sprites.CargoShip,
+}
+
+
 default_formations = (
-    (5, Vector(0, 0), Vector(-2, 1), Vector(2, 1)),
-    (1, Vector(0, 0), Vector(0, 3), Vector(0, 6)),
+    Formation(
+        "convoy",
+        1,
+        ["cargo", "cargo", "cargo"],
+        [Vector(0, 0), Vector(0, 3), Vector(0, 6)]
+    ),
+    Formation(
+        "patrol group",
+        5,
+        ["patrol", "patrol", "patrol"],
+        [Vector(0, 0), Vector(-2, 1), Vector(2, 1)]
+    ),
 )
 
 
@@ -46,12 +74,14 @@ class EndlessStrategy(NoStrategy):
 
     def spawn_formation(self, scene):
         formation = choice(self.formations)
-        span, *modifiers = formation
+        span = formation.spread
+        modifiers = formation.offsets
+        ships = formation.ships
         min_x = -5 + (span/2)
         spawn_x = min_x + (rand() * (10 - span))
         origin = Vector(spawn_x, 10)
-        for modifier in modifiers:
-            scene.add(game_sprites.EnemyShip(position=origin + modifier), tags=["enemy", "ship"])
+        for modifier, ship in zip(modifiers, ships):
+            scene.add(enemy_types[ship](position=origin + modifier), tags=["enemy", "ship"])
 
     def calculate_next_spawn(self):
         self.next_spawn_time += 5
