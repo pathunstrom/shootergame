@@ -86,7 +86,7 @@ class Alert(Bullet):
 
 class Beacon(MoveMixin):
     heading = Vector(0, -1)
-    life_span = 2
+    life_span = values.enemy_beacon_life_span
     image = Image("shooter/resources/enemies/beacon.png")
     size = 0.5
 
@@ -121,12 +121,22 @@ class EnemyShip(Ship):
 
 
 class PatrolShip(EnemyShip):
-    health = 15
+    health = values.enemy_patrol_health
     image = Image("shooter/resources/enemies/patrol.png")
-    speed = 5
-    critical_distance = 4
-    points = 20
+    speed = values.enemy_patrol_speed
+    critical_distance = values.enemy_patrol_watch_distance
+    base_points = values.enemy_patrol_point_value
+    bonus_points = values.enemy_patrol_bonus_value
     signaled = False
+
+    @property
+    def points(self):
+        # TODO: Consider this a mixin?
+
+        if not self.signaled:
+            return self.base_points + self.bonus_points
+        else:
+            return self.base_points
 
     def on_update(self, event: ppb_events.Update, signal):
         p = list(event.scene.get(kind=Player))
@@ -136,18 +146,17 @@ class PatrolShip(EnemyShip):
                 if not self.signaled:
                     signal(shooter_events.EnemyAlerted(self))
                     self.signaled = True
-                    self.points = 10
         super().on_update(event, signal)
 
 
 class CargoShip(EnemyShip):
-    health = 25
+    health = values.enemy_cargo_health
     image = Image("shooter/resources/enemies/cargo.png")
-    speed = 2
-    critical_distance = 5
-    upgrade_points = 5
+    speed = values.enemy_cargo_speed
+    critical_distance = values.enemy_cargo_watch_distance
+    upgrade_points = values.enemy_cargo_upgrade_value
     accelerate = False
-    max_speed = 5
+    max_speed = values.enemy_cargo_max_speed
 
     def on_update(self, update: ppb_events.Update, signal):
         p = list(update.scene.get(kind=Player))
@@ -156,22 +165,22 @@ class CargoShip(EnemyShip):
             if (player.position - self.position).length < self.critical_distance:
                 self.accelerate = True
         if self.accelerate and self.speed < self.max_speed:
-            self.speed *= 1.02
+            self.speed *= values.enemy_cargo_acceleration
             if self.speed > self.max_speed:
                 self.speed = self.max_speed
         super().on_update(update, signal)
 
 
 class EscortFrigate(EnemyShip):
-    health = 10
+    health = values.enemy_escort_health
     image = Image("shooter/resources/enemies/escort.png")
-    speed = 3
+    speed = values.enemy_escort_speed
     cooldown_counter = 0
     next_shot = 0
     shots = []
     shooting = False
     escorting = None
-    points = 15
+    points = values.enemy_escort_point_value
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.escorting is not None or self.escorting not in update.scene:
@@ -210,9 +219,9 @@ class EscortFrigate(EnemyShip):
             update.scene.add(bullet)
             self.cooldown_counter = 0
             if self.shots:
-                self.next_shot = 0.33
+                self.next_shot = values.enemy_escort_volley_pause
             else:
-                self.next_shot = 2.5
+                self.next_shot = values.enemy_escort_volley_cooldown
 
 
 class Player(Ship):
@@ -220,7 +229,7 @@ class Player(Ship):
     heading = Vector(0, 0)
     guns = 0
     engines = 0
-    health = 20
+    health = values.player_health
     images = [
         [
             Image(f"shooter/resources/ship/g{g}e{e}.png")
@@ -270,7 +279,7 @@ class Player(Ship):
 
     @property
     def speed(self):
-        return 3 + (self.engines * 1.5)
+        return values.player_base_speed + (self.engines * values.player_engine_bonus)
 
     @property
     def image(self):

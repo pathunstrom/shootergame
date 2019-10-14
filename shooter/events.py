@@ -14,7 +14,7 @@ class Scene(ABC):
     def add(self, game_object: BaseSprite, tags: list = ()) -> None: ...
 
     @abstractmethod
-    def get(self, kind: type=None, tag: str=None) -> Iterable: ...
+    def get(self, kind: type = None, tag: str = None) -> Iterable: ...
 
     @abstractmethod
     def remove(self, game_object: Any) -> None: ...
@@ -58,6 +58,7 @@ class PowerUp:
 class ScoreChange:
     score: int
     debug: str = "Score change"
+
 
 @dataclass
 class SetLives:
