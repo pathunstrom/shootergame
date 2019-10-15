@@ -12,6 +12,8 @@ from shooter.sprites import SpriteRoot
 from shooter.sprites.root import RunOnceAnimation
 
 
+# TODO: Add the player to the update event.
+
 __all__ = [
     "Bullet",
     "Player",
@@ -222,6 +224,40 @@ class EscortFrigate(EnemyShip):
                 self.next_shot = values.enemy_escort_volley_pause
             else:
                 self.next_shot = values.enemy_escort_volley_cooldown
+
+
+class Zero(EnemyShip):
+    accelerate = False
+    acceleration = values.enemy_zero_acceleration
+    critical_distance = values.enemy_zero_watch_distance
+    health = values.enemy_zero_health
+    image = Image("shooter/resources/enemies/zero.png")
+    max_speed = values.enemy_zero_max_speed
+    points_value = values.enemy_zero_points
+    bonus_value = values.enemy_zero_bonus
+    speed = values.enemy_zero_speed
+
+    @property
+    def points(self):
+        if not self.accelerate:
+            return self.points_value
+        else:
+            return self.points_value + self.bonus_value
+
+    def on_update(self, update: ppb_events.Update, signal):
+        player = None
+        player_set = list(update.scene.get(kind=Player))
+        if player_set:
+           player = player_set.pop()
+        if player is not None and (player.position - self.position).length <= self.critical_distance and not self.accelerate:
+            self.heading = ((player.position + (player.heading * player.speed * update.time_delta * 15)) - self.position).normalize()
+            self.facing = self.heading
+            self.accelerate = True
+        if self.accelerate and self.speed < self.max_speed:
+            self.speed *= self.acceleration
+            if self.speed > self.max_speed:
+                self.speed = self.max_speed
+        super().on_update(update, signal)
 
 
 class Player(Ship):

@@ -40,3 +40,11 @@ enemy_patrol_point_value = 10
 enemy_patrol_bonus_value = 10
 enemy_patrol_speed = 5
 enemy_patrol_watch_distance = 4
+
+enemy_zero_acceleration = 1.05
+enemy_zero_health = 10
+enemy_zero_max_speed = 15
+enemy_zero_points = 5
+enemy_zero_bonus = 20
+enemy_zero_speed = 4
+enemy_zero_watch_distance = 10

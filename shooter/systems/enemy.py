@@ -38,6 +38,7 @@ enemy_types = {
     "patrol": game_sprites.PatrolShip,
     "cargo": game_sprites.CargoShip,
     "escort": game_sprites.EscortFrigate,
+    "zero": game_sprites.Zero,
 }
 
 
@@ -47,48 +48,76 @@ default_formations: Iterable[Formation] = (
         1,
         ["cargo"],
         [Vector(0, 0)],
-        0,
-        3
+        10,
+        30
     ),
     Formation(
         "scout",
         1,
         ["patrol"],
         [Vector(0, 0)],
-        0,
-        5
+        15,
+        40,
     ),
     Formation(
         "convoy",
         1,
         ["cargo", "cargo", "cargo"],
         [Vector(0, 0), Vector(0, 3), Vector(0, 6)],
-        3,
-        10,
+        25,
+        50,
     ),
     Formation(
         "patrol group",
         5,
         ["patrol", "patrol", "patrol"],
         [Vector(0, 0), Vector(-2, 1), Vector(2, 1)],
-        5,
-        15,
+        35,
+        75,
     ),
     Formation(
         "escorted convoy",
         3,
         ["cargo", "escort", "cargo", "cargo"],
         [Vector(0, 0), Vector(3, 0), Vector(0, 3), Vector(0, 6)],
-        10,
-        20
+        45,
+        100
     ),
     Formation(
         "escort",
         1,
         ["escort"],
         [Vector(0, 0)],
-        15,
+        35,
     ),
+    Formation(
+        "zero",
+        1,
+        ["zero"],
+        [Vector(0, 0)],
+        75,
+    ),
+    Formation(
+        "strike team",
+        3,
+        ["zero", "zero"],
+        [Vector(-1, 0), Vector(1, 0)],
+        90,
+    ),
+    Formation(
+        "clean up",
+        4,
+        ["escort", "zero", "zero"],
+        [Vector(0, 0), Vector(-1.5, 0), Vector(1.5, 0)],
+        125,
+    ),
+    Formation(
+        "it's a trap!",
+        6,
+        ["cargo", "cargo", "cargo", "zero", "zero", "zero", "zero"],
+        [Vector(0, 0), Vector(0, 2), Vector(0, 4), Vector(-2.5, 4), Vector(-2.5, 6), Vector(2.5, 4), Vector(2.5, 6)],
+        150
+    )
 )
 
 
@@ -113,22 +142,28 @@ class NoStrategy:
 class EndlessStrategy(NoStrategy):
     next_spawn_time = 0.5
     counter = 0
-    danger = 1
+    danger = 10
+    danger_counter = 0
+    danger_advancement_rate = 10
 
     @property
     def minimum_ships(self):
-        return self.danger
+        return self.danger / 10
 
     @property
     def maximum_ships(self):
-        return int(self.danger + (self.danger * 0.25) + 1)
+        return int(self.danger / 9)
 
     def advance(self, time_delta, scene):
         self.counter += time_delta
+        self.danger_counter += time_delta
         enemies = list(scene.get(kind=game_sprites.EnemyShip))
         if self.counter >= self.next_spawn_time and len(enemies) < self.maximum_ships:
             self.spawn_formation(scene)
             self.calculate_next_spawn()
+        if self.danger_counter >= self.danger_advancement_rate:
+            self.danger += 1
+            self.danger_counter = 0
 
     def spawn_formation(self, scene):
         formations = [f for f in self.formations if f.difficulty_floor <= self.danger <= f.difficulty_ceiling]
@@ -199,3 +234,6 @@ class EnemyComms(System):
         """
         alert.scene.add(game_sprites.Alert(position=alert.source.position))
         signal(ppb_events.PlaySound(sounds["message"]))
+
+    def on_enemy_escaped(self, escaped: s_events.EnemyEscaped, signal):
+        self.on_enemy_alerted(s_events.EnemyAlerted(escaped.enemy, scene=escaped.scene), signal)
