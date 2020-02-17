@@ -243,10 +243,12 @@ class Zero(EnemyShip):
 
     def on_update(self, update: ppb_events.Update, signal):
         super().on_update(update, signal)
-        if self.player_spotted and self.speed < self.max_speed:
-            self.speed *= self.acceleration
-            if self.speed > self.max_speed:
-                self.speed = self.max_speed
+        if self.player_spotted:
+            self.health -= update.time_delta
+            if self.speed < self.max_speed:
+                self.speed *= self.acceleration
+                if self.speed > self.max_speed:
+                    self.speed = self.max_speed
 
     def sensor_response(self, player, signal):
         self.heading = ((player.position + (player.heading * player.speed * .25)) - self.position).normalize()
