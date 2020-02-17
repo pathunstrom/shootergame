@@ -137,6 +137,7 @@ default_formations: Iterable[Formation] = (
 
 
 class NoStrategy:
+    paused = False
 
     def __init__(self, formations):
         self.formations: Iterable[Formation] = formations
@@ -152,6 +153,15 @@ class NoStrategy:
 
     def alerted(self, event, signal):
         pass
+
+    def pause(self):
+        """
+        Strategies are paused until the screen clears.
+        """
+        self.paused = True
+
+    def unpause(self):
+        self.paused = False
 
 
 class EndlessStrategy(NoStrategy):
@@ -170,6 +180,8 @@ class EndlessStrategy(NoStrategy):
         return int(self.danger / 9)
 
     def advance(self, time_delta, scene):
+        if self.paused:
+            return
         self.counter += time_delta
         self.danger_counter += time_delta
         enemies = list(scene.get(kind=game_sprites.EnemyShip))
@@ -231,9 +243,16 @@ class EnemyLoader(System):
 
     def on_idle(self, idle: ppb_events.Idle, signal):
         self.strategy.advance(idle.time_delta, idle.scene)
+        if self.strategy.paused:
+            if not list(idle.scene.get(tag="enemy")):
+                self.strategy.unpause()
+                signal(s_events.EnemiesClear())
 
     def on_enemy_alerted(self, enemy_alerted, signal):
         self.strategy.alerted(enemy_alerted, signal)
+
+    def on_player_died(self, died: s_events.PlayerDied, signal):
+        self.strategy.pause()
 
 
 class EnemyComms(System):

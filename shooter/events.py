@@ -21,6 +21,11 @@ class Scene(ABC):
 
 
 @dataclass
+class EnemiesClear:
+    scene: Scene = None
+
+
+@dataclass
 class EnemyAlerted:
     source: Any
     scene: Scene = None
