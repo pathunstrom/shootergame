@@ -173,11 +173,11 @@ class EndlessStrategy(NoStrategy):
 
     @property
     def minimum_ships(self):
-        return self.danger / 10
+        return self.danger // 10
 
     @property
     def maximum_ships(self):
-        return int(self.danger / 9)
+        return self.danger // 8
 
     def advance(self, time_delta, scene):
         if self.paused:
@@ -189,7 +189,7 @@ class EndlessStrategy(NoStrategy):
             self.spawn_formation(scene)
             self.calculate_next_spawn()
         if self.danger_counter >= self.danger_advancement_rate:
-            self.danger += 1
+            self.danger += 2
             self.danger_counter = 0
 
     def spawn_formation(self, scene):
@@ -212,6 +212,9 @@ class EndlessStrategy(NoStrategy):
     def alerted(self, event, signal):
         self.danger += 1
 
+    def unpause(self):
+        super().unpause()
+        self.danger //= 3
 
 class Strategies(Enum):
     NONE = NoStrategy
@@ -244,7 +247,8 @@ class EnemyLoader(System):
     def on_idle(self, idle: ppb_events.Idle, signal):
         self.strategy.advance(idle.time_delta, idle.scene)
         if self.strategy.paused:
-            if not list(idle.scene.get(tag="enemy")):
+            available_enemies = list(idle.scene.get(tag="enemy"))
+            if not available_enemies:
                 self.strategy.unpause()
                 signal(s_events.EnemiesClear())
 
