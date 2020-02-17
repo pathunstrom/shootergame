@@ -6,7 +6,7 @@ grid_pixel_size = 32
 game_width = 10
 game_height = 20
 
-splash_length = 1
+splash_length = 0.1
 
 window_pixel_width = grid_pixel_size * game_width
 window_pixel_height = grid_pixel_size * game_height
@@ -19,6 +19,13 @@ player_health = 20
 player_base_speed = 3
 player_engine_bonus = 1.5
 
+enemy_ace_bullet_cool_down = 0.45
+enemy_ace_health = 35
+enemy_ace_max_thrust = 7
+enemy_ace_optimal_range = 5
+enemy_ace_sensor_range = 5
+enemy_ace_speed_cruise = 4
+enemy_ace_tri_missle_cool_down = 2
 
 enemy_beacon_life_span = 2
 

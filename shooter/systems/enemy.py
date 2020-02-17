@@ -21,7 +21,7 @@ __all__ = [
 
 
 sounds = {
-    "message": Sound("shooter/resources/sound/message.wav")
+    "message": Sound("shooter/resources/sound/enemy-alerted.wav")
 }
 
 
@@ -31,7 +31,7 @@ class Formation(NamedTuple):
     ships: Iterable[str]
     offsets: Iterable[Vector]
     difficulty_floor: int = 0
-    difficulty_ceiling: int = 1000000 # Arbitrarily large.
+    difficulty_ceiling: int = 1000000  # Arbitrarily large.
 
 
 enemy_types = {
@@ -39,6 +39,7 @@ enemy_types = {
     "cargo": game_sprites.CargoShip,
     "escort": game_sprites.EscortFrigate,
     "zero": game_sprites.Zero,
+    "ace": game_sprites.Ace,
 }
 
 
@@ -117,7 +118,21 @@ default_formations: Iterable[Formation] = (
         ["cargo", "cargo", "cargo", "zero", "zero", "zero", "zero"],
         [Vector(0, 0), Vector(0, 2), Vector(0, 4), Vector(-2.5, 4), Vector(-2.5, 6), Vector(2.5, 4), Vector(2.5, 6)],
         150
-    )
+    ),
+    Formation(
+        "ace",
+        1,
+        ["ace"],
+        [Vector(0, 0)],
+        125
+    ),
+    Formation(
+        "death squad",
+        5,
+        ["ace", "escort", "zero", "zero"],
+        [Vector(0, 5), Vector(0, 0), Vector(-2, 7), Vector(2, 7)],
+        160,
+    ),
 )
 
 

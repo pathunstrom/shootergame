@@ -107,6 +107,8 @@ class EnemyShip(Ship):
     health = 1
     upgrade_points = 1
     points = 1
+    sensor_distance = 1
+    player_spotted = False
 
     def on_update(self, update: ppb_events.Update, signal):
         if self.health <= 0:
@@ -120,13 +122,19 @@ class EnemyShip(Ship):
             if self.collides_with(player):
                 self.damage(player.mass)
                 player.damage(self.mass)
+            elif (player.position - self.position).length <= self.sensor_distance:
+                self.player_spotted = True
+                self.sensor_response(player, signal)
+
+    def sensor_response(self, player, signal):
+        pass
 
 
 class PatrolShip(EnemyShip):
     health = values.enemy_patrol_health
     image = Image("shooter/resources/enemies/patrol.png")
     speed = values.enemy_patrol_speed
-    critical_distance = values.enemy_patrol_watch_distance
+    sensor_distance = values.enemy_patrol_watch_distance
     base_points = values.enemy_patrol_point_value
     bonus_points = values.enemy_patrol_bonus_value
     signaled = False
@@ -140,37 +148,26 @@ class PatrolShip(EnemyShip):
         else:
             return self.base_points
 
-    def on_update(self, event: ppb_events.Update, signal):
-        p = list(event.scene.get(kind=Player))
-        if p:
-            player = p.pop()
-            if (player.position - self.position).length < self.critical_distance:
-                if not self.signaled:
-                    signal(shooter_events.EnemyAlerted(self))
-                    self.signaled = True
-        super().on_update(event, signal)
+    def sensor_response(self, player, signal):
+        if not self.signaled:
+            signal(shooter_events.EnemyAlerted(self))
+            self.signaled = True
 
 
 class CargoShip(EnemyShip):
     health = values.enemy_cargo_health
     image = Image("shooter/resources/enemies/cargo.png")
     speed = values.enemy_cargo_speed
-    critical_distance = values.enemy_cargo_watch_distance
+    sensor_distance = values.enemy_cargo_watch_distance
     upgrade_points = values.enemy_cargo_upgrade_value
-    accelerate = False
     max_speed = values.enemy_cargo_max_speed
 
     def on_update(self, update: ppb_events.Update, signal):
-        p = list(update.scene.get(kind=Player))
-        if p:
-            player = p.pop()
-            if (player.position - self.position).length < self.critical_distance:
-                self.accelerate = True
-        if self.accelerate and self.speed < self.max_speed:
+        super().on_update(update, signal)
+        if self.player_spotted and self.speed < self.max_speed:
             self.speed *= values.enemy_cargo_acceleration
             if self.speed > self.max_speed:
                 self.speed = self.max_speed
-        super().on_update(update, signal)
 
 
 class EscortFrigate(EnemyShip):
@@ -229,7 +226,7 @@ class EscortFrigate(EnemyShip):
 class Zero(EnemyShip):
     accelerate = False
     acceleration = values.enemy_zero_acceleration
-    critical_distance = values.enemy_zero_watch_distance
+    sensor_distance = values.enemy_zero_watch_distance
     health = values.enemy_zero_health
     image = Image("shooter/resources/enemies/zero.png")
     max_speed = values.enemy_zero_max_speed
@@ -245,19 +242,94 @@ class Zero(EnemyShip):
             return self.points_value + self.bonus_value
 
     def on_update(self, update: ppb_events.Update, signal):
-        player = None
-        player_set = list(update.scene.get(kind=Player))
-        if player_set:
-           player = player_set.pop()
-        if player is not None and (player.position - self.position).length <= self.critical_distance and not self.accelerate:
-            self.heading = ((player.position + (player.heading * player.speed * update.time_delta * 15)) - self.position).normalize()
-            self.facing = self.heading
-            self.accelerate = True
-        if self.accelerate and self.speed < self.max_speed:
+        super().on_update(update, signal)
+        if self.player_spotted and self.speed < self.max_speed:
             self.speed *= self.acceleration
             if self.speed > self.max_speed:
                 self.speed = self.max_speed
+
+    def sensor_response(self, player, signal):
+        self.heading = ((player.position + (player.heading * player.speed * .25)) - self.position).normalize()
+        self.facing = self.heading
+
+
+class Ace(EnemyShip):
+    image = Image("shooter/resources/enemies/superiority.png")
+    health = values.enemy_ace_health
+    initial_speed = values.enemy_ace_speed_cruise
+    sensor_distance = values.enemy_ace_sensor_range
+    attack_mode = False
+    target_attack_range = values.enemy_ace_optimal_range
+    bullet_cool_down = values.enemy_ace_bullet_cool_down
+    tri_missle_cool_down = values.enemy_ace_tri_missle_cool_down
+    tri_missle_counter = 0
+    tri_missle_count = 2
+    max_thrust = values.enemy_ace_max_thrust
+
+    def on_update(self, update: ppb_events.Update, signal):
         super().on_update(update, signal)
+        if self.player_spotted:
+            self.maneuver(update, signal)
+
+    def maneuver(self, update, signal):
+        if self.health > values.enemy_ace_health / 2:
+            target_vector = Vector(0, 0)
+            # Slow and aim to be the target distance.
+            for player in update.scene.get(kind=Player):
+
+                # Making moves
+                # TODO: Add some variance to this to keep Aces from locking in position.
+                from_player = self.position - player.position
+                target_vector += from_player.scale(self.max_thrust)
+                towards_player = player.position - self.position
+                strength_of_towards = (towards_player.length / self.target_attack_range) * self.max_thrust
+                target_vector += (player.position - self.position).scale(strength_of_towards)
+                avoid_left = max(2 - self.position.x, 0)
+                target_vector += Vector(avoid_left, 0).scale(avoid_left ** 2)
+                avoid_right = max(self.position.x - 8, 0)
+                target_vector += Vector(avoid_right, 0).scale(avoid_right ** 2)
+                self.heading = target_vector.normalize()
+                self.speed = target_vector.length
+
+                # Attack time
+                spawn_position = self.position + towards_player.truncate(0.5)
+                if self.bullet_cool_down <= 0:
+                    update.scene.add(
+                        Bullet(
+                            position=spawn_position,
+                            heading=towards_player.normalize(),
+                            target="player"
+                        )
+                    )
+                    self.bullet_cool_down = values.enemy_ace_bullet_cool_down
+                else:
+                    self.bullet_cool_down -= update.time_delta
+                if self.tri_missle_cool_down <= 0:
+                    if self.tri_missle_count:
+                        update.scene.add(
+                            Zero(
+                                position=spawn_position,
+                                heading=towards_player.normalize(),
+                                size=.5
+                            )
+                        )
+                        self.tri_missle_count -= 1
+                        self.tri_missle_cool_down = 0.2
+                    else:
+                        update.scene.add(
+                            Zero(
+                                position=spawn_position,
+                                heading=towards_player.normalize(),
+                                size=.5
+                            )
+                        )
+                        self.tri_missle_count = 2
+                        self.tri_missle_cool_down = values.enemy_ace_tri_missle_cool_down
+                else:
+                    self.tri_missle_cool_down -= update.time_delta
+        else:
+            self.heading = Vector(0, -1)
+            self.speed = self.max_thrust
 
 
 class Player(Ship):
