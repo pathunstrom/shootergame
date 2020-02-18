@@ -24,3 +24,8 @@ Requires Python 3.6 or 3.7.
 
 Now includes the [feet](https://github.com/ironfroggy/feet) runner from
 ironyfroggy. If playing on windows, just run `feet-amd64-0.0.5.exe`.
+
+## Game Control
+
+Use the mouse to select the Start button on the main menu. Control your ship
+with the arrow buttons and space bar to shoot.
