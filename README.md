@@ -23,7 +23,7 @@ Sample run script for windows:
 Requires Python 3.6 or 3.7.
 
 Now includes the [feet](https://github.com/ironfroggy/feet) runner from
-ironyfroggy. If playing on windows, just run `feet-amd64-0.0.5.exe`.
+ironyfroggy. If playing on windows, just run `shootergame.exe`.
 
 ## Game Control
 
